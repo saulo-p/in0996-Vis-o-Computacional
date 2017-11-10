@@ -66,5 +66,5 @@
 	( (SUB_CONST_OP)
 	( (VF_DERIVATIVE_OP) 
 	( (INPUT_OP: 13) ) ) ) ) ) ) ) ) ) ) ) ) )
-	) 
-) 
+	)
+)

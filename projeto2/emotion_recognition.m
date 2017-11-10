@@ -20,4 +20,29 @@
 clear all;
 close all;
 
+im = imread('./data/KA.AN1.39.tiff');
+
+gaborBank = gabor(2.^(4:-1:1), 0:-30:-150);
+
+p2 = size(gaborBank, 2);
+% p = sqrt(p2);
+figure;
+for i = 1:p2
+   subplot(6,4,p2-(i-1));
+   imshow(gaborBank(i).SpatialKernel,[]);
+end
+
+
+[gaborMag, ~] = imgaborfilt(im, gaborBank);
+
+figure;
+for i = 1:p2
+   subplot(6,4,i);
+   imshow(gaborMag(:,:,p2-(i-1)),[]);
+   
+   theta = gaborBank(p2-(i-1)).Orientation;
+   lambda = gaborBank(p2-(i-1)).Wavelength;
+   title(sprintf('Orientation=%d, Wavelength=%d',theta,lambda));
+end
+
 
