@@ -1,7 +1,7 @@
 function [H, n_inl, idx_inl] = RANSAC(x1, x2)
 %% RANSAC algorithm:
 
-e_dist = 5;
+e_dist = 10;
 n_trials = 500;
 n_matches = length(x1);
 n_inl = 0;
