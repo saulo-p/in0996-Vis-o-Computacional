@@ -33,5 +33,5 @@ for i = 1:n_trials
    end
 end
 
-H = H / H(3,3);
+H = H./H(3,3);
 end

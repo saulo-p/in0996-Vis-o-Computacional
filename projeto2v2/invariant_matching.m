@@ -21,15 +21,17 @@ test = rgb2gray(imread('./data/roll.jpg'));
 ref_sz = size(ref);
 tst_sz = size(test);
 
-%% Algorithm
+%% Algorithm 1 (as shown on paper)
 
 % Loop initializations:
 I_it = im2double(test);
 % Reference image Features Detection and Description (using SURF)
 [ref_feats, ref_pts] = extractFeatures(ref, detectSURFFeatures(ref));
 num_matches = [];
+% Reference image histogram
+h_ref = imhist(ref);
 
-for it = 1:2
+for it = 1:3
     % Current image features
     [I_feats, I_pts] = extractFeatures(I_it, detectSURFFeatures(I_it));
     
@@ -42,8 +44,8 @@ for it = 1:2
     % TEST: Show current matches (with outliers)
     figure;
     showMatchedFeatures(ref, I_it, ref_mt, I_mt, 'montage');
-    title(['Feature matches from template (left) and test image (right):' ...,
-           length(idxMatch), ...
+    title(['Feature matches from template (left) and test image (right):' ...
+           num2str(length(idxMatch)) ...
            ' matches']);
     
     % Keypoints (features) in homogeneous coordinates
@@ -56,21 +58,34 @@ for it = 1:2
     ref_xh = ref_xh(:, idx_inl);
     I_xh = I_xh(:, idx_inl);
     
-    % 'Enhance' pose estimation using Gauss Newton
-%     Hp = gauss_newton(Hp, ref_xh, I_xh, 100);
+    [mask, valid] = TemplateSegmentation(ref, I_it, Hp);
     
-    TemplateSegmentation(ref, I_it, Hp);
+    if(~valid)
+        % TODO (laço apenas contemplar parte estocástica)
+        disp('Current pose is not considered valid');
+        continue;
+    end
     
-    % TODO (histogram processing steps)
-%     mask...
+    % Histogram 
+
     % Apply pose transformation
     Hp_ = inv(Hp);
     Hp_ = Hp_./Hp_(3,3);
+    I_roi = imwarp(mask.*I_it, projective2d(Hp_'));
     I_it = imwarp(I_it, projective2d(Hp_'));
+    % TEST: Pose-corrected image
+%     figure;
+%     imshow(I_it);
+    % Approximate segmentation
     
-    figure;
-    imshow(I_it);
+    % Histogram processing
+    h_roi = imhist(I_roi);
+    h_roi(1) = 0;
+    IlluminationTranslation(h_ref, h_roi);
 end
+
+
+
 
 %% DDM (Detection, Description and Matching) Framework
 % 
