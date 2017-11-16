@@ -29,7 +29,7 @@ I_it = im2double(test);
 [ref_feats, ref_pts] = extractFeatures(ref, detectSURFFeatures(ref));
 num_matches = [];
 % Reference image histogram
-h_ref = imhist(ref);
+% h_ref = imhist(ref);
 
 for it = 1:3
     % Current image features
@@ -41,12 +41,12 @@ for it = 1:3
     ref_mt = ref_pts(idxMatch(:,1));
     I_mt = I_pts(idxMatch(:,2));
     
-    % TEST: Show current matches (with outliers)
+    %% TEST: Show current matches (with outliers)
     figure;
     showMatchedFeatures(ref, I_it, ref_mt, I_mt, 'montage');
     title(['Feature matches from template (left) and test image (right):' ...
            num2str(length(idxMatch)) ...
-           ' matches']);
+           ' matches.  Iteration # = ' num2str(it)]);
     
     % Keypoints (features) in homogeneous coordinates
     ref_xh = [ref_mt.Location'; ones(1, ref_mt.Count)];
@@ -54,11 +54,19 @@ for it = 1:3
         
     % Remove outlier matches and estimate pose Hp using RANSAC
     [Hp, n_inl, idx_inl] = RANSAC(ref_xh, I_xh);
-    disp(n_inl)
     ref_xh = ref_xh(:, idx_inl);
     I_xh = I_xh(:, idx_inl);
     
+    %% TEST: Show inlier matches
+    figure;
+    str_title = ['Inlier matches: ' num2str(n_inl) ' inliers'];
+    subplot(1,2,1); imshow(ref); hold on; scatter(ref_xh(1,:), ref_xh(2,:), 'r');
+    title(str_title);
+    subplot(1,2,2); imshow(I_it); hold on; scatter(I_xh(1,:), I_xh(2,:), 'g+');
+    title(str_title);
+    
     [mask, valid] = TemplateSegmentation(ref, I_it, Hp);
+%     figure; imshow(mask.*I_it);
     
     if(~valid)
         % TODO (laço apenas contemplar parte estocástica)
@@ -66,74 +74,17 @@ for it = 1:3
         continue;
     end
     
-    % Histogram 
-
     % Apply pose transformation
     Hp_ = inv(Hp);
     Hp_ = Hp_./Hp_(3,3);
     I_roi = imwarp(mask.*I_it, projective2d(Hp_'));
     I_it = imwarp(I_it, projective2d(Hp_'));
-    % TEST: Pose-corrected image
-%     figure;
-%     imshow(I_it);
-    % Approximate segmentation
-    
+   
     % Histogram processing
-    h_roi = imhist(I_roi);
-    h_roi(1) = 0;
-    IlluminationTranslation(h_ref, h_roi);
+%     h_roi = imhist(I_roi);
+%     h_roi(1) = 0;
+%     IlluminationTranslation(h_ref, h_roi);
+    I_roi_t = IlluminationTranslation(I_roi, ref);
+
 end
 
-
-
-
-%% DDM (Detection, Description and Matching) Framework
-% 
-% % Features Detection and Description (using SURF)
-% [ref_feats, ref_pts] = extractFeatures(ref, detectSURFFeatures(ref));
-% [tst_feats, tst_pts] = extractFeatures(test, detectSURFFeatures(test));
-% 
-% % Features Matching
-% idxMatch = matchFeatures(ref_feats, tst_feats, 'Unique', true);
-% ref_mt = ref_pts(idxMatch(:,1));
-% tst_mt = tst_pts(idxMatch(:,2));
-% 
-% figure;
-% showMatchedFeatures(ref, test, ref_mt, tst_mt, 'montage');
-% hold on;
-% title('Feature matches from template (left) and test image (right)');
-% 
-%% Outlier Removal and Pose transformation estimation
-% 
-% % Keypoints (features) in homogeneous coordinates
-% ref_xh = [ref_mt.Location'; ones(1, ref_mt.Count)];
-% tst_xh = [tst_mt.Location'; ones(1, tst_mt.Count)];
-% 
-% % Remove outlier matches and estimate pose Hp using RANSAC
-% [Hp, ~, idx_inl] = RANSAC(ref_xh, tst_xh);
-% ref_xh = ref_xh(:, idx_inl);
-% tst_xh = tst_xh(:, idx_inl);
-% 
-% % TODO: TEST: Outlier removal
-% % scatter(ref_xh(2,:), ref_xh(1,:), 'b*');
-% % scatter(tst_xh(2,:) + tst_sz(2), tst_xh(1,:) + tst_sz(1), 'b*');
-% 
-% % % Correct possible reflection in the homography
-% % if det(Hp(1:2, 1:2)) < 0
-% %     Hp = [-1 0 0;0 1 0;0 0 1]*Hp;
-% % end
-% 
-% % Enhance pose estimation using Gauss Newton
-% Hp = gauss_newton(Hp, ref_xh, tst_xh, 100);
-% 
-%% Segmentation from template
-% 
-% mask = TemplateSegmentation(ref, test, Hp);
-% 
-% % Image results
-% figure;
-% subplot(1,2,1);
-% imshow(mask);
-% subplot(1,2,2);
-% imshow(test.*mask);
-% 
