@@ -1,5 +1,6 @@
 function [H, n_inl, idx_inl] = RANSAC(x1, x2)
 %% RANSAC algorithm:
+% TODO: Pixel error based on image size.
 
 e_dist = 10;
 n_trials = 500;

@@ -28,7 +28,7 @@ title('Estimated corners of test image');
 
 %% Output
 
-% Pose check (fits on image size and (TODO>) covers features)
+% Pose check 1: Corners fit on image size
 UL = repmat(tst_corners(:,1), 1, 4); %Upper left
 BR = repmat(tst_corners(:,2), 1, 4); %Bottom right
 %valid_scale is true if transformed corners lie within the test_img.
@@ -36,6 +36,12 @@ valid_scale = (temp_corners(1:2,:) - UL > 0) & ...
               (BR - temp_corners(1:2,:) > 0);
 valid_scale = all(all(valid_scale));
           
+% Pose check 2: Area is equal to at least 10% of image area
+valid_scale = valid_scale && ...
+             (max(temp_corners(1,:)) - min(temp_corners(1,:)) > 0.1*ref_size(1) && ...
+              max(temp_corners(2,:)) - min(temp_corners(2,:)) > 0.1*ref_size(2));
+
+
 % Create template mask over test image
 M = roipoly(test_img, temp_corners(1,:), temp_corners(2,:));
 

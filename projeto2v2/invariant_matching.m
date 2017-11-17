@@ -16,30 +16,36 @@ close all;
 %% Input data
 
 ref = rgb2gray(imread('./data/book_ref.png'));
-test = rgb2gray(imread('./data/roll.jpg'));
+test = rgb2gray(imread('./data/IMG_20171117_172648686_HDR.jpg'));
 
 ref_sz = size(ref);
 tst_sz = size(test);
 
+illum_trans = true;
+
 %% Algorithm 1 (as shown on paper)
 
-% Loop initializations:
+% I_it is initialized with test image.
 I_it = im2double(test);
+
 % Reference image Features Detection and Description (using SURF)
 [ref_feats, ref_pts] = extractFeatures(ref, detectSURFFeatures(ref));
-num_matches = [];
-% Reference image histogram
-% h_ref = imhist(ref);
 
-for it = 1:3
-    % Current image features
+num_inls = [];
+for it = 1:10
+    disp(['===> Iteração ' num2str(it)]);
+    % Current image features.
     [I_feats, I_pts] = extractFeatures(I_it, detectSURFFeatures(I_it));
     
     % Features Matching (reference x current image)
     idxMatch = matchFeatures(ref_feats, I_feats, 'Unique', true);
-    num_matches = [num_matches length(idxMatch)];
+    
     ref_mt = ref_pts(idxMatch(:,1));
     I_mt = I_pts(idxMatch(:,2));
+    % Keypoints (features) in homogeneous coordinates (for future
+    % operations)
+    ref_xh = [ref_mt.Location'; ones(1, ref_mt.Count)];
+    I_xh = [I_mt.Location'; ones(1, I_mt.Count)];
     
     %% TEST: Show current matches (with outliers)
     figure;
@@ -47,13 +53,12 @@ for it = 1:3
     title(['Feature matches from template (left) and test image (right):' ...
            num2str(length(idxMatch)) ...
            ' matches.  Iteration # = ' num2str(it)]);
-    
-    % Keypoints (features) in homogeneous coordinates
-    ref_xh = [ref_mt.Location'; ones(1, ref_mt.Count)];
-    I_xh = [I_mt.Location'; ones(1, I_mt.Count)];
         
     % Remove outlier matches and estimate pose Hp using RANSAC
     [Hp, n_inl, idx_inl] = RANSAC(ref_xh, I_xh);
+    num_inls = [num_inls n_inl];
+    
+    % Keep only the estimated inlier features
     ref_xh = ref_xh(:, idx_inl);
     I_xh = I_xh(:, idx_inl);
     
@@ -70,7 +75,8 @@ for it = 1:3
     
     if(~valid)
         % TODO (laço apenas contemplar parte estocástica)
-        disp('Current pose is not considered valid');
+        disp('Current pose estimate is not good enough');
+        close all;
         continue;
     end
     
@@ -79,12 +85,25 @@ for it = 1:3
     Hp_ = Hp_./Hp_(3,3);
     I_roi = imwarp(mask.*I_it, projective2d(Hp_'));
     I_it = imwarp(I_it, projective2d(Hp_'));
-   
+        
     % Histogram processing
-%     h_roi = imhist(I_roi);
-%     h_roi(1) = 0;
-%     IlluminationTranslation(h_ref, h_roi);
-    I_roi_t = IlluminationTranslation(I_roi, ref);
-
+    if (illum_trans)
+        I_roi_t = IlluminationTranslation(I_roi, ref);
+        I_it = (I_roi_t > 0).*I_roi_t + (I_roi_t == 0).*I_it;
+        figure;
+        imshow(I_it);
+        title('Illumination translation'); 
+    end
+    % Termination condition check
+    R = Hp_(1:2,1:2)/sqrt(det(Hp_(1:2,1:2)));
+%     disp(norm(inv(R) - R'));
+    if ( norm(inv(R) - R') < 5e-3 || ...
+         num_inls(end) < num_inls(max([1 (length(num_inls)-1)])) )
+        disp(['Termination condition achieved' newline ...
+              'Ortogonalidade: ' num2str(norm(inv(R) - R')) newline ...
+              'Max inliers: ' num2str(max(num_inls))] );
+        break;
+    end
+    
 end
 
