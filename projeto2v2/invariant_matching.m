@@ -2,26 +2,21 @@
 % [IN0996] Visão Computacional - Projeto 2
 % * A Novel Algorithm for View and Illumination Invariant Image Matching.
 %
-% References:
-%
-% TODO:
-% * Check RANSAC stability.
-%   * and parameterize the function.
-% * Rewrite support functions (comments and better coding practices)
-%
 % Aluno: Saulo Pereira (scrps@cin.ufpe.br)
 % ========================================================================
 clear all;
 close all;
 %% Input data
 
-ref = rgb2gray(imread('./data/book_ref.png'));
-test = rgb2gray(imread('./data/IMG_20171117_172648686_HDR.jpg'));
+ref = rgb2gray(imread('./data/1_ref.png'));
+test = rgb2gray(imread('./data/1_roll.jpg'));
 
 ref_sz = size(ref);
 tst_sz = size(test);
 
+% Execution parametes
 illum_trans = true;
+MAX_ITR = 10;
 
 %% Algorithm 1 (as shown on paper)
 
@@ -32,7 +27,7 @@ I_it = im2double(test);
 [ref_feats, ref_pts] = extractFeatures(ref, detectSURFFeatures(ref));
 
 num_inls = [];
-for it = 1:10
+for it = 1:MAX_ITR
     disp(['===> Iteração ' num2str(it)]);
     % Current image features.
     [I_feats, I_pts] = extractFeatures(I_it, detectSURFFeatures(I_it));
@@ -99,9 +94,9 @@ for it = 1:10
 %     disp(norm(inv(R) - R'));
     if ( norm(inv(R) - R') < 5e-3 || ...
          num_inls(end) < num_inls(max([1 (length(num_inls)-1)])) )
-        disp(['Termination condition achieved' newline ...
-              'Ortogonalidade: ' num2str(norm(inv(R) - R')) newline ...
-              'Max inliers: ' num2str(max(num_inls))] );
+        disp(['Termination condition achieved' ...%newline ...
+              ' Ortogonalidade: ' num2str(norm(inv(R) - R')) ...%newline ...
+              ' Max inliers: ' num2str(max(num_inls))] );
         break;
     end
     

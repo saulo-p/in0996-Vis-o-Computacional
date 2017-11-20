@@ -17,14 +17,14 @@ tst_corners =  [1            1;
       
 
 temp_corners = Hp*ref_corners;
-temp_corners = temp_corners./temp_corners(3,:);
+temp_corners = temp_corners./repmat(temp_corners(3,:),3,1);
 
-% TEST: Image results
-figure;
-subplot(1,2,1); imshow(temp_img); hold on; scatter(ref_corners(1,:), ref_corners(2,:), '*');
-title('Corners of reference image');
-subplot(1,2,2); imshow(test_img); hold on; scatter(temp_corners(1,:), temp_corners(2,:), '*');
-title('Estimated corners of test image');
+%% TEST: Image results
+% figure;
+% subplot(1,2,1); imshow(temp_img); hold on; scatter(ref_corners(1,:), ref_corners(2,:), '*');
+% title('Corners of reference image');
+% subplot(1,2,2); imshow(test_img); hold on; scatter(temp_corners(1,:), temp_corners(2,:), '*');
+% title('Estimated corners of test image');
 
 %% Output
 
