@@ -10,19 +10,25 @@ O algoritmo consiste na aplicação de sucessivas transformações projetivas pa
 #### Execução exemplo ####
 
 * Matches iniciais
+
 ![i0](https://github.com/saulo-p/in0996-Visao-Computacional/blob/master/projeto2v2/presentation/0.PNG)
 
 * Inliers estimados
+
 ![i0_1](https://github.com/saulo-p/in0996-Visao-Computacional/blob/master/projeto2v2/presentation/0.1.PNG)
 
 * Primeira transformação
+
 ![i0_2](https://github.com/saulo-p/in0996-Visao-Computacional/blob/master/projeto2v2/presentation/0.2.PNG)
 
 * Novos inliers
-![i1_1]((https://github.com/saulo-p/in0996-Visao-Computacional/blob/master/projeto2v2/presentation/1.1.PNG))
+
+![i1_1](https://github.com/saulo-p/in0996-Visao-Computacional/blob/master/projeto2v2/presentation/1.1.PNG)
 
 * Segunda transformação
+
 ![i1_2](https://github.com/saulo-p/in0996-Visao-Computacional/blob/master/projeto2v2/presentation/1.2.PNG)
 
 * Matches após correções sucessivas
+
 ![i2](https://github.com/saulo-p/in0996-Visao-Computacional/blob/master/projeto2v2/presentation/2.PNG)
